@@ -85,6 +85,7 @@ public class FsNode implements Node
             child = this.children.get(0);
         return child;
     }
+    
 
     private void storeChilderen()
     {

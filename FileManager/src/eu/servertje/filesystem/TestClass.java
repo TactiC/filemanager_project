@@ -17,7 +17,8 @@ public class TestClass
         TestClass tc = new TestClass();
 //        tc.listFiles();
 //        tc.testPath();
-        tc.testFsTree();
+//        tc.testFsTree();
+        tc.testView();
     }
 
     public void listFiles()
@@ -37,26 +38,57 @@ public class TestClass
         for (File f : lFiles)
             System.out.println(f.getName());
         
-        File file = new File("");
+//        File file = new File("");
     }
     
+    void testView()
+    {
+        FsTree tree = new FsTree();
+        FsView view = tree.getView();
+        System.out.println("Parent list");
+        System.out.println("--------------------------");
+        for (String string : view.getParentList())
+        {
+            System.out.println(string);
+        }
+        System.out.println("Current list");
+        System.out.println("--------------------------");
+        for (String string : view.getCurrentList())
+        {
+            System.out.println(string);
+        }
+        System.out.println("Child list");
+        System.out.println("--------------------------");
+        for (String string : view.getChildList())
+        {
+            System.out.println(string);
+        }
+        System.out.println("--------------------------");
+        System.out.println("--------------------------");
+    }
     void testFsTree()
     {
         FsTree tree = new FsTree();
-        Node n = (FsNode) tree.getNode();
+//        Node n = (FsNode) tree.getNode();
 //        n.storeChilderen();
-        System.out.println("is root: " + n.isRoot());
-        System.out.println("if file " + n.isFile());
-        System.out.println("is dir " + n.isDirectory());
-        System.out.println("....");
-        
+//        System.out.println("is root: " + n.isRoot());
+//        System.out.println("if file " + n.isFile());
+//        System.out.println("is dir " + n.isDirectory());
+//        System.out.println("....");
+//        
 //        tree.listChilderen();
 //        tree.listCurrent();
-        tree.moveDown();
-        tree.moveDown();
-        tree.moveDown();
-//        tree.listChilderen();
         tree.listCurrent();
+        System.out.println("--------------------------");
+        tree.moveDown();
+        tree.listCurrent();
+        System.out.println("--------------------------");
+        tree.moveDown();
+        tree.listCurrent();
+        System.out.println("--------------------------");
+        tree.moveDown();
+        tree.listCurrent();
+//        tree.listChilderen();
         
     }
     void testPath()

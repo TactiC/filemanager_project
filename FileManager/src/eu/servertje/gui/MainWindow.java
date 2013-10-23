@@ -3,20 +3,24 @@ package eu.servertje.gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.io.File;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import eu.servertje.filesystem.FileManager;
+import eu.servertje.filesystem.FsTree;
+import eu.servertje.filesystem.FsView;
 
 public class MainWindow extends JFrame implements ListSelectionListener
 {
@@ -28,15 +32,11 @@ public class MainWindow extends JFrame implements ListSelectionListener
     private DefaultListModel<String> currentListModel   = null;
     private DefaultListModel<String> childListModel     = null;
 
-    private FileManager manager = new FileManager();
+    private JList<String> parentList    = new JList<>();
+    private JList<String> currentList   = new JList<>();
+    private JList<String> childList     = new JList<>();
     
-    private JList<File> parentList = new JList<>();
-    private JList<String> currentList = new JList<>();
-    private JList<File> childList = new JList<>();
-
-//    private File defaultHome = new File("/home/ronald");
-//    private int index = 0;
-
+    private FsTree tree = new FsTree();
     
     public MainWindow() {
         setMinimumSize(new Dimension(450, 300));
@@ -54,9 +54,13 @@ public class MainWindow extends JFrame implements ListSelectionListener
         
         // Initialize current pane
         this.currentListModel = new DefaultListModel<>();
-        manager.updateCurrentFiles("/home/ronald", currentListModel);
         currentList.setSelectedIndex(0);
+//        currentList.transferFocus();
         sp_current = createList(currentListModel, currentList);
+        sp_current.getInputMap().put(KeyStroke.getKeyStroke("L"), "left");
+        sp_current.getActionMap().put("left", new leftAction());
+
+//        sp_current.requestFocusInWindow();
         contentPanel.add(sp_current);
         
         // Initialize child pane
@@ -78,14 +82,10 @@ public class MainWindow extends JFrame implements ListSelectionListener
         this.setVisible(true);
     }
     
-//    private JScrollPane createDefaultScollPane()
-//    {
-//       return null;
-//    }
     
-    private JScrollPane createList(DefaultListModel model, JList list)
+    private JScrollPane createList(DefaultListModel<String> model, JList<String> list)
     {
-        list = new JList<File>(model);
+        list = new JList<String>(model);
         list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         list.addListSelectionListener(this);
         list.setVisibleRowCount(10);
@@ -98,47 +98,79 @@ public class MainWindow extends JFrame implements ListSelectionListener
         return pane;
     }
     
-    public void addMoreData()
+    public void fill()
     {
-        for (int i = 0; i < 10; i++)
-        {
-            File f = new File("abababa: " + i);
-            currentListModel.removeElement(f);
-        }
+        FsView view = tree.getView();
+        fillParentList(view);
+        fillCurrentList(view);
+//        fillChildList(view);
     }
     
-   public void fillCurrentList()
+    
+   private void fillParentList(FsView view)
    {
-//       this.currentFiles = defaultHome.listFiles();
-//       for (File f : this.currentFiles)
-//       {
-//           this.currentListModel.addElement(f.getName());
-//       }
+        for (String string : view.getParentList())
+        {
+           this.parentListModel.addElement(string);
+        }
    }
 
-   private void fillChildList(File file)
+   private void fillCurrentList(FsView view)
    {
-//       this.childFiles = file.listFiles();
-//       for (File f : this.childFiles)
-//       {
-//           this.currentListModel.addElement(f.getName());
-//       }
+        for (String string : view.getCurrentList())
+        {
+           this.currentListModel.addElement(string);
+        }
+        this.validate();
+        this.currentList.ensureIndexIsVisible(0);
+        this.currentList.setSelectedIndex(1);
+        this.validate();
+   }
+
+   private void fillChildList(FsView view)
+   {
+        for (String string : view.getChildList())
+        {
+           this.childListModel.addElement(string);
+        }
    }
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
         if (e.getValueIsAdjusting() == false)
         {
-            JList list = (JList) e.getSource();
-            if (list != null)
+            Object obj = e.getSource();
+            if (obj instanceof JList)
             {
-                int index = list.getSelectedIndex();
-                DefaultListModel m = (DefaultListModel) list.getModel();
-//                System.out.println(m.elementAt(index));
-                String location = m.elementAt(index).toString();
-//                this.manager.updateParentFiles(, this.parentListModel);
-                this.manager.updateChildFiles(location, this.childListModel);
+                // If it is a JList is is of type JList<String>
+                // Trust me, I know these things...
+                @SuppressWarnings("unchecked")
+                JList<String> list = (JList<String>) obj;
+                if (list != null)
+                {
+                    int index = list.getSelectedIndex();
+                    DefaultListModel<String> model = (DefaultListModel<String>) list.getModel();
+                    System.out.println(model.elementAt(index));
+                    String location = model.elementAt(index).toString();
+                    tree.listChilderen(location);
+                    if (model == this.currentListModel)
+                        model = this.childListModel;
+                    FsView.updateChilderenList(tree.listChilderen(location), model);
+                }
             }
+        }
+    }
+    
+    private class leftAction extends AbstractAction
+    {
+        public leftAction()
+        {
+            
+        }
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            System.out.println("left action");
         }
     }
 }

@@ -15,7 +15,7 @@ public class App
            {
 //               new MainWindow().addContent();
                mainWindow = new MainWindow();
-               mainWindow.fillCurrentList();
+               mainWindow.fill();
            }
         });
     }
